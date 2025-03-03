@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics - Expense Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <nav class="navbar navbar-expand-lg">
+                <a href="index.html" class="main-heading navbar-brand">Expense Tracker</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="nav-links navbar-nav ms-auto">
+                        <li class="nav-item"><a href="add-transaction.html" class="nav-link">Expenses</a></li>
+                        <li class="nav-item"><a href="budget.html" class="nav-link">Budget</a></li>
+                        <li class="nav-item"><a href="transactions.html" class="nav-link">Transaction History</a></li>
+                        <li class="nav-item"><a href="analytics.html" class="nav-link active">Reports & Analytics</a></li>
+                    </ul>
+                    <div class="ms-3">
+                        <input type="checkbox" id="toggle">
+                        <label class="changeMode" for="toggle"></label>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="container mt-5">
+            <h2 class="text-center mb-5">Reports & Analytics</h2>
+            <div class="row justify-content-center g-4">
+                <div class="col-12 col-md-6">
+                    <div class="card analytics-card">
+                        <div class="card-body">
+                            <h4 class="card-title text-center mb-4">Spending by Category</h4>
+                            <canvas id="spendingChart" class="chart-canvas pie-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="card analytics-card">
+                        <div class="card-body">
+                            <h4 class="card-title text-center mb-4">Monthly Spending Trend</h4>
+                            <canvas id="monthlyChart" class="chart-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="card analytics-card">
+                        <div class="card-body">
+                            <h4 class="card-title text-center mb-4">Income vs. Expenses</h4>
+                            <canvas id="incomeVsExpenseChart" class="chart-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="card analytics-card">
+                        <div class="card-body">
+                            <h4 class="card-title text-center mb-4">Top Spending Categories</h4>
+                            <ul class="list-group list-group-flush" id="top-categories"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3 card analytics-card mt-4">
+                <div class="card-body">
+                    <h4 class="card-title text-center mb-4">Summary</h4>
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <p class="summary-label">Total Income</p>
+                            <p class="summary-value" id="total-income">$0.00</p>
+                        </div>
+                        <div class="col-4">
+                            <p class="summary-label">Total Expenses</p>
+                            <p class="summary-value" id="total-expenses">$0.00</p>
+                        </div>
+                        <div class="col-4">
+                            <p class="summary-label">Net Balance</p>
+                            <p class="summary-value" id="net-balance">$0.00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+    <script>
+
+        // Calculate analytics data
+        function getCategorySpending() {
+            const spending = {};
+            transactions
+                .filter(t => t.type === 'expense')
+                .forEach(t => {
+                    spending[t.category] = (spending[t.category] || 0) + parseFloat(t.amount);
+                });
+            return spending;
+        }
+
+        function getMonthlySpending() {
+            const monthly = {};
+            transactions
+                .filter(t => t.type === 'expense')
+                .forEach(t => {
+                    const month = new Date(t.date).toLocaleString('default', { month: 'short', year: 'numeric' });
+                    monthly[month] = (monthly[month] || 0) + parseFloat(t.amount);
+                });
+            return monthly;
+        }
+
+        function getTopCategories() {
+            const spending = getCategorySpending();
+            return Object.entries(spending)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+        }
+
+        // Theme-aware axis color
+        const axisColor = document.body.classList.contains('dark-mode') ? '#ffffff' : '#ffffff';
+
+        // Render charts and summary
+        function renderAnalytics() {
+            const spending = getCategorySpending();
+            const monthlySpending = getMonthlySpending();
+            const topCategories = getTopCategories();
+
+            // Pie Chart (Spending by Category)
+            const spendingCtx = document.getElementById('spendingChart').getContext('2d');
+            new Chart(spendingCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(spending),
+                    datasets: [{
+                        data: Object.values(spending),
+                        backgroundColor: ['#2A4B7C', '#507A8D', '#A0BACC', '#3A5A9A', '#6A8EA2'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true, // Keep this true for proportional resizing
+        aspectRatio: 1,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 16 },
+                                color: axisColor
+                            }
+                        }
+                    },
+                    layout: {
+            padding: 20 // Optional: adds space around the chart
+        }
+                }
+            });
+
+           // Bar Chart (Monthly Spending Trend) - Sorted Chronologically
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+            const monthlyData = Object.entries(monthlySpending)
+                .map(([month, amount]) => ({ month, amount, date: new Date(month) }))
+                .sort((a, b) => a.date - b.date); // Sort by date
+            const sortedMonths = monthlyData.map(item => item.month);
+            const sortedAmounts = monthlyData.map(item => item.amount);
+
+            new Chart(monthlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: sortedMonths,
+                    datasets: [{
+                        label: 'Expenses',
+                        data: sortedAmounts,
+                        backgroundColor: '#2A4B7C',
+                        borderColor: '#3A5A9A',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { ticks: { color: axisColor } },
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { color: axisColor }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+            // Bar Chart (Income vs. Expenses)
+            const incomeVsExpenseCtx = document.getElementById('incomeVsExpenseChart').getContext('2d');
+            const income = transactions
+                .filter(t => t.type === 'income')
+                .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+            const expenses = transactions
+                .filter(t => t.type === 'expense')
+                .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+            new Chart(incomeVsExpenseCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Income', 'Expenses'],
+                    datasets: [{
+                        label: 'Amount',
+                        data: [income, expenses],
+                        backgroundColor: ['#507A8D', '#A0BACC'],
+                        borderColor: ['#6A8EA2', '#B8C8D4'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { ticks: { color: axisColor } },
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { color: axisColor }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Top Categories
+            const topCategoriesList = document.getElementById('top-categories');
+            topCategoriesList.innerHTML = '';
+            topCategories.forEach(([category, amount]) => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.innerHTML = `
+                    <span>${category}</span>
+                    <span class="badge bg-primary rounded-pill">$${amount.toFixed(2)}</span>
+                `;
+                topCategoriesList.appendChild(li);
+            });
+
+            // Summary
+            const balance = income - expenses;
+            document.getElementById('total-income').textContent = `$${income.toFixed(2)}`;
+            document.getElementById('total-expenses').textContent = `$${expenses.toFixed(2)}`;
+            document.getElementById('net-balance').textContent = `$${balance.toFixed(2)}`;
+        }
+
+        // Load analytics on page load
+        document.addEventListener('DOMContentLoaded', renderAnalytics);
+    </script>
+</body>
+</html>

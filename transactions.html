@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History - Expense Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <nav class="navbar navbar-expand-lg">
+                <a href="index.html" class="main-heading navbar-brand">Expense Tracker</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="nav-links navbar-nav ms-auto">
+                        <li class="nav-item"><a href="add-transaction.html" class="nav-link">Expenses</a></li>
+                        <li class="nav-item"><a href="budget.html" class="nav-link">Budget</a></li>
+                        <li class="nav-item"><a href="transactions.html" class="nav-link active">Transaction History</a></li>
+                        <li class="nav-item"><a href="analytics.html" class="nav-link">Reports & Analytics</a></li>
+                    </ul>
+                    <div class="ms-3">
+                        <input type="checkbox" id="toggle">
+                        <label class="changeMode" for="toggle"></label>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="container mt-4">
+            <h2 class="text-center mb-4" >Transaction History</h2>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Modal -->
+        <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content expenseForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="updateModalLabel">Update Transaction</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="update-form">
+                            <input type="hidden" id="update-id">
+                            <div class="mb-3">
+                                <label for="update-type" class="form-label">Type</label>
+                                <select id="update-type" class="form-select" required>
+                                    <option value="income">Income</option>
+                                    <option value="expense">Expense</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="update-amount" class="form-label">Amount ($)</label>
+                                <input type="number" id="update-amount" class="form-control" step="0.01" min="0" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="update-category" class="form-label">Category</label>
+                                <input type="text" id="update-category" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="update-date" class="form-label">Date</label>
+                                <input type="date" id="update-date" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="update-description" class="form-label">Description</label>
+                                <input type="text" id="update-description" class="form-control">
+                            </div>
+                            <button type="submit" class="btn w-100">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+        
+
+        // Populate transaction table
+        function renderTransactions() {
+            const tbody = document.getElementById('transaction-table');
+            tbody.innerHTML = '';
+            transactions.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${t.date}</td>
+                    <td>${t.type.charAt(0).toUpperCase() + t.type.slice(1)}</td>
+                    <td>${t.category}</td>
+                    <td>$${t.amount.toFixed(2)}</td>
+                    <td>${t.description || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary me-2" onclick="openUpdateModal(${t.id})">Update</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteTransaction(${t.id})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Delete transaction
+        function deleteTransaction(id) {
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                transactions = transactions.filter(t => t.id !== id);
+                saveTransactions();
+                renderTransactions();
+            }
+        }
+
+        // Open update modal with pre-filled data
+        function openUpdateModal(id) {
+            const transaction = transactions.find(t => t.id === id);
+            if (transaction) {
+                document.getElementById('update-id').value = transaction.id;
+                document.getElementById('update-type').value = transaction.type;
+                document.getElementById('update-amount').value = transaction.amount;
+                document.getElementById('update-category').value = transaction.category;
+                document.getElementById('update-date').value = transaction.date;
+                document.getElementById('update-description').value = transaction.description || '';
+                const modal = new bootstrap.Modal(document.getElementById('updateModal'));
+                modal.show();
+            }
+        }
+
+        // Handle update form submission
+        document.getElementById('update-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('update-id').value);
+            const updatedTransaction = {
+                id: id,
+                type: document.getElementById('update-type').value,
+                amount: parseFloat(document.getElementById('update-amount').value),
+                category: document.getElementById('update-category').value,
+                date: document.getElementById('update-date').value,
+                description: document.getElementById('update-description').value || ''
+            };
+            transactions = transactions.map(t => t.id === id ? updatedTransaction : t);
+            saveTransactions();
+            renderTransactions();
+            bootstrap.Modal.getInstance(document.getElementById('updateModal')).hide();
+            alert('Transaction updated successfully!');
+        });
+
+        // Load transactions on page load
+        document.addEventListener('DOMContentLoaded', renderTransactions);
+    </script>
+</body>
+</html>
