@@ -36,8 +36,8 @@ To run the Expense Tracker locally, follow these steps:
 
 1. **Clone the Repository** (if hosted on GitHub):
     ```bash
-    git clone https://github.com/[your-username]/expense-tracker.git
-    cd expense-tracker
+    git clone https://github.com/ekshanya/ExpenseTracker.git
+    cd ExpenseTracker
     ```
 
 2. **Open in a Browser**:
@@ -63,27 +63,27 @@ To run the Expense Tracker locally, follow these steps:
 ## Screenshots
 
 - **Dashboard**:
-[Dashboard Light](/screenshots/Dashboard-light.png)
-[Dashboard Dark](/screenshots/Dashboard-dark.png)
+![Dashboard Light](/screenshots/Dashboard-light.png)
+![Dashboard Dark](/screenshots/Dashboard-dark.png)
 
 
 - **Add Transaction**:
-[Expenses Light](/screenshots/Expenses-light.png)
-[Expenses Dark](/screenshots/Expenses-dark.png)
+![Expenses Light](/screenshots/Expenses-light.png)
+![Expenses Dark](/screenshots/Expenses-dark.png)
 
 - **Transactions**:
-[Transaction Light](/screenshots/Transaction-light.png)
-[Transaction Dark](/screenshots/Transaction-dark.png)
+![Transaction Light](/screenshots/Transaction-light.png)
+![Transaction Dark](/screenshots/Transaction-dark.png)
 
 - **Budget**:
-[Budget Light](/screenshots/Budget-light.png)
-[Budget Dark](/screenshots/Budget-dark.png)
+![Budget Light](/screenshots/Budget-light.png)
+![Budget Dark](/screenshots/Budget-dark.png)
 
 - **Analytics**:
-[Analytics 1 Light](/screenshots/Analytics-light.png)
-[Analytics 2 Light](/screenshots/Analytics-light(1).png)
-[Analytics 1 Dark](/screenshots/Analytics-dark.png)
-[Analytics 2 Dark](/screenshots/Analytics-dark(1).png)
+![Analytics 1 Light](/screenshots/Analytics-light.png)
+![Analytics 2 Light](/screenshots/Analytics-light(1).png)
+![Analytics 1 Dark](/screenshots/Analytics-dark.png)
+![Analytics 2 Dark](/screenshots/Analytics-dark(1).png)
 
 
 ## Future Enhancements
